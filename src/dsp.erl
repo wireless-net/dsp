@@ -27,8 +27,8 @@
 -on_load(init/0).
 
 init() ->
-%    Lib = filename:join(code:priv_dir("dsp"), "libdsp"),
-    ok = erlang:load_nif("libdsp", 0).
+   Lib = filename:join(code:priv_dir("dsp"), "libdsp"),
+    ok = erlang:load_nif(Lib, 0).
 
 fir_fr16_init(_State) ->
     exit(nif_library_not_loaded).
