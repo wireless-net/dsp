@@ -126,7 +126,7 @@ extern void autocoh_fr16(const fract16 samples[],
  * and the mean of samples_y. The length of the input vectors is given
  * by sample_length . The functions return the result in the array
  * coherence with lags elements.
-*/ 
+ */ 
 extern void crosscoh_fr16 (const fract16 samples_x[ ],
 			   const fract16 samples_y[ ],
 			   int sample_length,
@@ -178,7 +178,7 @@ extern void crosscorr_fr16 (const fract16 samples_x[],
  * elements and the stack may therefore overflow if the number of bins
  * is sufficiently large. The size of the stack may be adjusted by
  * making appropriate changes to the . ldf file.
-*/
+ */
 extern void histogram_fr16 (const fract16 samples[],
 			    int histogram[],
 			    fract16 max_sample,
@@ -306,6 +306,24 @@ extern void twidfftrad2_fr16(complex_fract16 twiddle_table[],
 			     int fft_size);
 
 
+/*
+ * Custom DSP functions added to libbfdsp
+ */
+
+/*
+ * fract16 vector dot product (full 32-bit result)
+ * 
+ * This function performs the vector dot product of the two fract16 input 
+ * arrays. When the two arrays are 32-bit aligned, this function can utilize
+ * both Blackfin MAC units in parallel to reduce the cycle time by half. This
+ * function is a modified version of vecdot_fr16(), which returns a full 32-bit
+ * result to allow custom rounding methods.
+ */ 
+// extern fract32 vecdot_fr1x32(const fract16 a[], const fract16 b[], int length);
+
+/* added by Lumenosys Robotics, April 2015. */ 
+//extern fract16 vecdot_fr16_sr(const fract16 a[], const fract16 b[], int _length, fract16 srnd);
+
 /* NIF library resource structures */
 struct fir_fr16_nif_res {
 	/* cast pointer to this struct onto a resource allocated when
@@ -347,14 +365,14 @@ struct libdsp_priv_data {
 ERL_NIF_TERM
 mk_atom(ErlNifEnv* env, const char* atom)
 {
-  ERL_NIF_TERM ret;
+        ERL_NIF_TERM ret;
 
-  if(!enif_make_existing_atom(env, atom, &ret, ERL_NIF_LATIN1))
-    {
-      return enif_make_atom(env, atom);
-    }
+        if(!enif_make_existing_atom(env, atom, &ret, ERL_NIF_LATIN1))
+        {
+                return enif_make_atom(env, atom);
+        }
 
-  return ret;
+        return ret;
 }
 
 /* the fir_fr16_init_nif interface function */
@@ -387,49 +405,39 @@ static ERL_NIF_TERM fir_fr16_init_nif(ErlNifEnv *env,
 	 *
 	 */
 	if (!enif_get_tuple(env, argv[0], &state_tuple_len, &state_term)) {
-		printf("dsp: expected state tuple\n");
+		printf("%s: expected state tuple\n", __PRETTY_FUNCTION__);
 		return enif_make_badarg(env);
 	}
 	if (state_tuple_len > 2) {
-		printf("dsp: invalid fir_fr16 state tuple\n");
+		printf("%s: invalid fir_fr16 state tuple\n", __PRETTY_FUNCTION__);
 		return enif_make_badarg(env);
 	}		
 
 	/* now go through the state tuple, and validate and extract
 	 * the state */
 	
-	/* /\* grab and validate the substate atom *\/ */
-	/* if (!enif_get_atom(env,state_term[0],atom,80,ERL_NIF_LATIN1)) { */
-	/* 	printf("dsp: failed to get state atom\n"); */
-	/* 	return enif_make_badarg(env); */
-	/* } */
-	/* if (strcmp(atom, "fir_state_fr16") != 0) { */
-	/* 	printf("dsp: invalid state atom %s\n", atom); */
-	/* 	return enif_make_badarg(env); */
-	/* }		 */
-
 	/*
 	 * now try to get the coeffs tuple
 	 */
 	if (!enif_get_tuple(env, state_term[0], 
 			    &substate_tuple_len, &substate_term)) {
-		printf("dsp: expected substate tuple\n");
+		printf("%s: expected substate tuple\n", __PRETTY_FUNCTION__);
 		return enif_make_badarg(env);
 	}
 
 	/* grab and validate the substate atom */
 	if (!enif_get_atom(env,substate_term[0],atom,80,ERL_NIF_LATIN1)) {
-		printf("dsp: failed to get state atom\n");
+		printf("%s: failed to get state atom\n",__PRETTY_FUNCTION__);
 		return enif_make_badarg(env);
 	}
 	if (strcmp(atom, "h") != 0) {
-		printf("dsp: invalid substate atom %s\n", atom);
+		printf("%s: invalid substate atom %s\n", __PRETTY_FUNCTION__,atom);
 		return enif_make_badarg(env);
 	}		
 	
 	/* so far so good, grab the state value */	
 	if (!enif_inspect_binary(env, substate_term[1], &h_term)) {
-		printf("dsp: expected coeffs binary\n");
+		printf("%s: expected coeffs binary\n",__PRETTY_FUNCTION__);
 		return enif_make_badarg(env);
 	}
 
@@ -438,22 +446,22 @@ static ERL_NIF_TERM fir_fr16_init_nif(ErlNifEnv *env,
 	 */
 	if (!enif_get_tuple(env, state_term[1], 
 			    &substate_tuple_len, &substate_term)) {
-		printf("dsp: expected substate tuple\n");
+		printf("%s: expected substate tuple\n",__PRETTY_FUNCTION__);
 		return enif_make_badarg(env);
 	}
 
 	/* grab and validate the substate atom */
 	if (!enif_get_atom(env,substate_term[0],atom,80,ERL_NIF_LATIN1)) {
-		printf("dsp: failed to get state atom\n");
+		printf("%s: failed to get state atom\n",__PRETTY_FUNCTION__);
 		return enif_make_badarg(env);
 	}
 	if (strcmp(atom, "l") != 0) {
-		printf("dsp: invalid substate atom %s\n", atom);
+		printf("%s: invalid substate atom %s\n", __PRETTY_FUNCTION__,atom);
 		return enif_make_badarg(env);
 	}		
 
 	if (!enif_get_int(env, substate_term[1], &l)) {
-		printf("dsp: expected int l term\n");
+		printf("%s: expected int l term\n",__PRETTY_FUNCTION__);
 		return enif_make_badarg(env);
 	}
 
@@ -550,9 +558,6 @@ static ERL_NIF_TERM coeff_iirdf1_fr16_nif(ErlNifEnv *env,
 	int nstages;
 	int i;
 
-	/* TODO do error checking on coeffs and lengths */
-	/* free all memory */
-
 	/* grab the A coefficients */
 
 	if (!enif_get_list_length(env, argv[0], &a_count)) {
@@ -584,7 +589,7 @@ static ERL_NIF_TERM coeff_iirdf1_fr16_nif(ErlNifEnv *env,
 		/* grab the coefficient */
 		if (!enif_get_double(env, head, &val)) {
 			fprintf(stderr, "dsp: expected double\n");
-			enif_free(a_coeffs);
+  			enif_free(a_coeffs);
 			return enif_make_badarg(env);
 		}
 
@@ -748,16 +753,6 @@ static ERL_NIF_TERM iirdf1_fr16_init_nif(ErlNifEnv *env,
 	/* now go through the state tuple, and validate and extract
 	 * the state */
 	
-	/* /\* grab and validate the substate atom *\/ */
-	/* if (!enif_get_atom(env,state_term[0],atom,80,ERL_NIF_LATIN1)) { */
-	/* 	printf("dsp: failed to get state atom\n"); */
-	/* 	return enif_make_badarg(env); */
-	/* } */
-	/* if (strcmp(atom, "iirdf1_state_fr16") != 0) { */
-	/* 	printf("dsp: invalid state atom %s\n", atom); */
-	/* 	return enif_make_badarg(env); */
-	/* }		 */
-
 	/*
 	 * now try to get the coeffs tuple
 	 */
@@ -925,16 +920,6 @@ static ERL_NIF_TERM rfft_fr16_init_nif(ErlNifEnv *env,
 	/* now go through the state tuple, and validate and extract
 	 * the state */
 	
-	/* /\* grab and validate the substate atom *\/ */
-	/* if (!enif_get_atom(env,state_term[0],atom,80,ERL_NIF_LATIN1)) { */
-	/* 	printf("dsp: failed to get state atom\n"); */
-	/* 	return enif_make_badarg(env); */
-	/* } */
-	/* if (strcmp(atom, "rfft_state_fr16") != 0) { */
-	/* 	printf("dsp: invalid state atom %s\n", atom); */
-	/* 	return enif_make_badarg(env); */
-	/* }		 */
-
 	/*
 	 * now try to get the fft_size tuple
 	 */
@@ -1149,8 +1134,6 @@ static ERL_NIF_TERM crosscoh_fr16_nif(ErlNifEnv *env,
 	fract16 *y;
 	int lags;
 
-	printf("%s: WARNING: EXPERIMENTAL!\n", __PRETTY_FUNCTION__);
-
 	/* first arg is vector of fr16 data samples (X) */
 	if (!enif_inspect_binary(env, argv[0], &x1_i_term)) {
 		printf("dsp: expected input binary\n");
@@ -1203,8 +1186,6 @@ static ERL_NIF_TERM autocorr_fr16_nif(ErlNifEnv *env,
 	fract16 *x;
 	fract16 *y;
 	int lags;
-
-	printf("%s: WARNING: EXPERIMENTAL!\n", __PRETTY_FUNCTION__);
 
 	/* first arg is vector of fr16 data samples */
 	if (!enif_inspect_binary(env, argv[0], &x_i_term)) {
@@ -1291,7 +1272,7 @@ static ERL_NIF_TERM crosscorr_fr16_nif(ErlNifEnv *env,
 	return enif_make_binary(env, &y_o_term);
 }
 
-/* the hostogram_fr16_nif interface function */
+/* the histogram_fr16_nif interface function */
 /* NOTE: the output vector is a binary of uint32_t values, not fract16!! */
 static ERL_NIF_TERM histogram_fr16_nif(ErlNifEnv *env, 
 				       int argc, 
@@ -1389,6 +1370,123 @@ static ERL_NIF_TERM vecvmlt_fr16_nif(ErlNifEnv *env,
 	return enif_make_binary(env, &y_o_term);
 }
 
+/* the vecdot_fr1x32_nif interface function */
+static ERL_NIF_TERM vecdot_fr1x32_nif(ErlNifEnv *env, 
+                                      int argc, 
+                                      const ERL_NIF_TERM argv[])
+{
+	ErlNifBinary xa_i_term;
+        ErlNifBinary xb_i_term;
+	ErlNifBinary y_o_term;
+	fract32 *py;
+	unsigned long addr;
+
+	/* first arg is vector A of fract16s */
+	if (!enif_inspect_binary(env, argv[0], &xa_i_term)) {
+		printf("dsp: expected input binary\n");
+		return enif_make_badarg(env);
+	}
+
+	/* second arg is vector B of fract16s */
+	if (!enif_inspect_binary(env, argv[1], &xb_i_term)) {
+		printf("dsp: expected input binary\n");
+		return enif_make_badarg(env);
+	}
+
+	/* sanity check on lengths */
+	if (xa_i_term.size != xb_i_term.size) {
+		printf("dsp: vector lengths must be equal!\n");
+		return enif_make_badarg(env);
+	}
+
+	/* next, allocate an output binary for the result data (single 32-bit binary) */
+	if (!enif_alloc_binary(sizeof(fract32), &y_o_term)) {
+		printf("dsp: failed to allocate output binary\n");
+		return enif_make_atom(env, "alloc_failure");
+	}
+	py = (fract32 *)y_o_term.data;
+
+	addr = (unsigned long)xa_i_term.data;
+	if (addr & 3) return enif_make_atom(env, "input_a_mem_unaligned");
+
+	addr = (unsigned long)xb_i_term.data;
+	if (addr & 3) return enif_make_atom(env, "input_b_mem_unaligned");
+
+	addr = (unsigned long)y_o_term.data;
+	if (addr & 3) return enif_make_atom(env, "output_y_mem_unaligned");
+
+	/* do the computation */
+	*py = vecdot_fr1x32((fract16 *)xa_i_term.data, 	/* input vec A */
+                            (fract16 *)xb_i_term.data, 	/* input vec B */
+                            xa_i_term.size >> 1);		/* vector len  */
+
+	/* all done! */
+	return enif_make_binary(env, &y_o_term);
+}
+
+/* the vecdot_fr16_sr_nif interface function */
+static ERL_NIF_TERM vecdot_fr16_sr_nif(ErlNifEnv *env, 
+                                       int argc, 
+                                       const ERL_NIF_TERM argv[])
+{
+	ErlNifBinary xa_i_term;
+        ErlNifBinary xb_i_term;
+	ErlNifBinary y_o_term;
+	fract16 *py;
+	unsigned int srnd;
+	unsigned long addr;
+
+	/* first arg is vector A of fract16s */
+	if (!enif_inspect_binary(env, argv[0], &xa_i_term)) {
+		printf("dsp: expected input binary\n");
+		return enif_make_badarg(env);
+	}
+
+	/* second arg is vector B of fract16s */
+	if (!enif_inspect_binary(env, argv[1], &xb_i_term)) {
+		printf("dsp: expected input binary\n");
+		return enif_make_badarg(env);
+	}
+
+	/* third arg is a random integer */
+	if (!enif_get_uint(env, argv[2], &srnd)) {
+		printf("dsp: expected integer\n");
+		return enif_make_badarg(env);
+	}
+
+	/* sanity check on lengths */
+	if (xa_i_term.size != xb_i_term.size) {
+		printf("dsp: vector lengths must be equal!\n");
+		return enif_make_badarg(env);
+	}
+
+	/* next, allocate an output binary for the result data (single 32-bit binary) */
+	if (!enif_alloc_binary(sizeof(fract16), &y_o_term)) {
+		printf("dsp: failed to allocate output binary\n");
+		return enif_make_atom(env, "alloc_failure");
+	}
+	py = (fract16 *)y_o_term.data;
+
+	addr = (unsigned long)xa_i_term.data;
+	if (addr & 3) return enif_make_atom(env, "input_a_mem_unaligned");
+
+	addr = (unsigned long)xb_i_term.data;
+	if (addr & 3) return enif_make_atom(env, "input_b_mem_unaligned");
+
+	addr = (unsigned long)y_o_term.data;
+	if (addr & 3) return enif_make_atom(env, "output_y_mem_unaligned");
+
+	/* do the computation */
+	*py = vecdot_fr16_sr((fract16 *)xa_i_term.data, /* input vec A 					*/
+                             (fract16 *)xb_i_term.data, /* input vec B 					*/
+                             xa_i_term.size >> 1, /* vector len  					*/
+                             srnd); /* random number for rounding 	*/
+
+	/* all done! */
+	return enif_make_binary(env, &y_o_term);
+}
+
+
 /* the cabs_fr16_nif interface function */
 /* NOTE: this function supports single or vector arguments (i.e., the
  * binary can contain a single sample, or a be an entire vector of
@@ -1405,9 +1503,6 @@ static ERL_NIF_TERM cabs_fr16_nif(ErlNifEnv *env,
 	int i;
 
 	/* struct libdsp_priv_data *priv; */
-
-	/* /\* grab the private data *\/ */
-	/* priv = (struct libdsp_priv_data *)enif_priv_data(env); */
 
 	/* first arg is vector of complex_fract16s */
 	if (!enif_inspect_binary(env, argv[0], &x_i_term)) {
@@ -1449,9 +1544,6 @@ static ERL_NIF_TERM gen_hanning_fr16_nif(ErlNifEnv *env,
 	int size;
 
 	/* struct libdsp_priv_data *priv; */
-
-	/* /\* grab the private data *\/ */
-	/* priv = (struct libdsp_priv_data *)enif_priv_data(env); */
 
 	if (!enif_get_int(env, argv[0], &stride)) {
 		printf("dsp: expected window stride value (int)\n");
@@ -1589,6 +1681,202 @@ static ERL_NIF_TERM max_fr16_nif(ErlNifEnv *env,
 	return enif_make_int(env, (int)max);
 }
 
+/* the interleave_nif interface function */
+/* this NIF provides for interleaving of multiple binaries given
+ * chunk_size number of bytes */
+static ERL_NIF_TERM interleave_nif(ErlNifEnv *env, 
+				   int argc, 
+				   const ERL_NIF_TERM argv[])
+{
+	ErlNifBinary y_o_term;
+	ErlNifBinary *x_i_term;
+	ERL_NIF_TERM head, tail;
+	unsigned int bin_count;
+	int bin_len;
+	int chunk_size;
+	int cidx, bidx, iidx;
+
+	/* first arg is a list of binaries */
+	if (!enif_get_list_length(env, argv[0], &bin_count)) {
+		fprintf(stderr, "dsp: expected list\n");
+		return enif_make_badarg(env);
+	}
+	if (bin_count == 0) {
+		fprintf(stderr, "dsp: expected non-empty list\n");
+		return enif_make_badarg(env);
+	}
+	
+	/* allocate array of binaries */
+	x_i_term = enif_alloc(sizeof(ErlNifBinary) * bin_count);
+	if (x_i_term == NULL) {
+		fprintf(stderr, "dsp: failed to allocate memory\n");
+		return mk_atom(env, "alloc_failed");
+	}
+	
+	/* go through list and grab each binary */
+	
+	/* get first element */
+	if (!enif_get_list_cell(env, argv[0], &head, &tail)) {
+		fprintf(stderr, "dsp: expected valid list\n");
+		enif_free(x_i_term);
+		return enif_make_badarg(env);
+	}
+	cidx = 0;
+	bin_len = 0;
+	do {
+		/* grab the binary */
+		if (!enif_inspect_binary(env, head, &x_i_term[cidx])) {
+			printf("dsp: expected input binary\n");
+			enif_free(x_i_term);
+			return enif_make_badarg(env);
+		}
+		/* check that it isn't empty */
+		if (x_i_term[cidx].size == 0) {
+			printf("dsp: expected non empty binary\n");
+			enif_free(x_i_term);
+			return enif_make_badarg(env);
+		}
+
+		/* grab first binary size or check against the next */
+		if (cidx == 0) {
+			bin_len = x_i_term[cidx].size;
+		} else if (bin_len != x_i_term[cidx].size) {
+			printf("dsp: all binaries must be the same length\n");
+			enif_free(x_i_term);
+			return enif_make_badarg(env);
+		}
+		
+		/* increment our index */
+		cidx++;
+		
+		/* get next element */
+	} while(enif_get_list_cell(env, tail, &head, &tail));
+	
+	/* second arg is chunk size */
+	if (!enif_get_int(env, argv[1], &chunk_size)) {
+		printf("dsp: expected integer\n");
+		enif_free(x_i_term);
+		return enif_make_badarg(env);
+	}
+	
+	/* check that binary size is a multiple of the chunk size */
+	if (bin_len % chunk_size) {
+		printf("dsp: binary must be a multiple of the chunk size\n");
+		enif_free(x_i_term);
+		return enif_make_badarg(env);
+	}
+		
+	/* allocate a new binary which is bin_count * bin_len */
+	if (!enif_alloc_binary(bin_count * bin_len, &y_o_term)) {
+		fprintf(stderr, "dsp: failed to allocate binary\n");
+		enif_free(x_i_term);
+		return mk_atom(env, "alloc_failed");
+	}
+	
+	/* loop through binaries memcpying in the chunksizes (with
+	 * common index, which we bump at end of the loop body) */
+	iidx = 0;
+	for (cidx = 0; cidx < bin_len; cidx+=chunk_size) {
+		for (bidx = 0; bidx < bin_count; bidx++) {
+			//printf("copying %d bytes from bin%d:%d to index %d\n", chunk_size, bidx, cidx, iidx);
+			memcpy(&y_o_term.data[iidx], &x_i_term[bidx].data[cidx], chunk_size);
+			iidx+=chunk_size;
+		}
+	}
+
+	/* free memory allocated */
+	enif_free(x_i_term);
+	
+	/* all done! */
+	return enif_make_binary(env, &y_o_term);
+}
+
+/* the deinterleave_nif interface function */
+/* this NIF provides for deinterleaving of an input binary into
+ * multiple binaries given chunk_size number of bytes */
+static ERL_NIF_TERM deinterleave_nif(ErlNifEnv *env, 
+				     int argc, 
+				     const ERL_NIF_TERM argv[])
+{
+	unsigned char **y_o_bin;
+	ErlNifBinary x_i_term;
+	ERL_NIF_TERM *y_o_term;
+	ERL_NIF_TERM head;
+	int bin_count;
+	int bin_len;
+	int chunk_size;
+	int cidx, bidx, iidx;
+	
+	/* grab input binary */
+	if (!enif_inspect_binary(env, argv[0], &x_i_term)) {
+		printf("dsp: expected binary\n");
+		return enif_make_badarg(env);
+	}
+
+	/* grab bin_count */
+	if (!enif_get_int(env, argv[1], &bin_count)) {
+		printf("dsp: expected integer\n");
+		return enif_make_badarg(env);
+	}
+
+	/* grab chunk_size */
+	if (!enif_get_int(env, argv[2], &chunk_size)) {
+		printf("dsp: expected integer\n");
+		return enif_make_badarg(env);
+	}
+
+	/* check that input length is a multiple of the chunk_size *
+	 * bin_count */
+	if (x_i_term.size % (chunk_size * bin_count)) {
+		printf("dsp: input must be a multiple of the chunk size * bin_count\n");
+		return enif_make_badarg(env);
+	}
+	
+	/* allocate array of bin_count binary data pointers */
+	bin_len = x_i_term.size / bin_count;
+ 	y_o_bin = (unsigned char **)enif_alloc(sizeof(unsigned char *) * bin_count);
+	if (y_o_bin == NULL) {
+		fprintf(stderr, "dsp: failed to allocate memory\n");
+		return mk_atom(env, "alloc_failed");
+	}
+
+	y_o_term = enif_alloc(sizeof(ERL_NIF_TERM) * bin_count);
+	if (y_o_term == NULL) {
+		fprintf(stderr, "dsp: failed to allocate memory\n");
+		enif_free(y_o_bin);
+		return mk_atom(env, "alloc_failed");
+	}
+
+	for (bidx = 0; bidx < bin_count; bidx++) {
+		y_o_bin[bidx] = enif_make_new_binary(env, bin_len, &y_o_term[bidx]);
+ 		if (y_o_bin[bidx] == NULL) {
+			fprintf(stderr, "dsp: failed to allocate binary\n");
+			enif_free(y_o_bin);
+			return mk_atom(env, "alloc_failed");
+		}
+	}
+	
+	/* copy in data from input binary into output binaries */
+	cidx = 0;
+	for (iidx = 0; iidx < x_i_term.size;) {
+		for (bidx = 0; bidx < bin_count; bidx++) {
+			memcpy(&y_o_bin[bidx][cidx], &x_i_term.data[iidx], chunk_size);
+			iidx+=chunk_size;
+		}
+		cidx+=chunk_size;
+	}
+	
+	/* build list of the output binaries */
+	head = enif_make_list_from_array(env, y_o_term, bin_count);
+
+	/* free the pointer arrays */
+	enif_free(y_o_bin);
+	enif_free(y_o_term);
+
+	/* return the list */
+	return head;
+}
+
 /* XXX TODO implement reload() and upgrade() */
 
 /* Loads the NIF module and initializes private data */
@@ -1638,7 +1926,6 @@ static int load(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM load_info)
 		return -1;
 	}
 
-
 	*priv_data = priv;
 
 	return 0;
@@ -1662,6 +1949,8 @@ static ErlNifFunc nif_funcs[] = {
 	{ "rfft_fr16_init", 1, rfft_fr16_init_nif },
 	{ "rfft_fr16", 2, rfft_fr16_nif },
 	{ "vecvmlt_fr16", 2, vecvmlt_fr16_nif },
+	{ "vecdot_fr1x32", 2, vecdot_fr1x32_nif },
+	{ "vecdot_fr16_sr", 3, vecdot_fr16_sr_nif },
 	{ "cabs_fr16", 1, cabs_fr16_nif },
 	{ "gen_hanning_fr16", 2, gen_hanning_fr16_nif },
 	{ "autocoh_fr16", 2, autocoh_fr16_nif },
@@ -1673,6 +1962,8 @@ static ErlNifFunc nif_funcs[] = {
 	{ "var_fr16", 1, var_fr16_nif },
 	{ "max_fr16", 1, max_fr16_nif },
 	{ "min_fr16", 1, min_fr16_nif },
+	{ "interleave", 2, interleave_nif },
+	{ "deinterleave", 3, deinterleave_nif },
 };
 
 ERL_NIF_INIT(dsp, nif_funcs, load, NULL, NULL, unload)

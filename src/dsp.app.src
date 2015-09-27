@@ -1,5 +1,5 @@
 {application, dsp,
- [{description, "Lumenosys Obsidian DSP NIF library application"},
+ [{description, "Lumenosys Robotics DSP NIF library application"},
   {vsn, git},
   {registered, []},
   {applications, [

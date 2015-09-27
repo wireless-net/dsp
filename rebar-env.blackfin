@@ -1,5 +1,0 @@
-export LIBDSP_DIR=/home/dbutter/projects/lumenosys/blackfin/libdsp
-export STRIP=bfin-linux-uclibc-strip
-export CC=bfin-linux-uclibc-gcc
-export CFLAGS="-Wall -O3 -fpic -funroll-loops -ffast-math -fomit-frame-pointer -mcpu=bf537-0.3 -isystem $LIBDSP_DIR/include -I $STAGING_DIR/usr/lib/erlang/usr/include"
-export LDFLAGS="-L$LIBDSP_DIR/lib -Wl,-Bstatic -lbfdsp -Wl,-Bdynamic"
